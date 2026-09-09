@@ -23,7 +23,7 @@ function App() {
     { id: 3, name: 'Website Redesign', issues: 1 }
   ])
 
-  const [issues] = useState<Issue[]>([
+  const [issues, setIssues] = useState<Issue[]>([
     {
       id: 1,
       projectId: 1,
@@ -57,6 +57,10 @@ function App() {
   const [projectName, setProjectName] = useState('')
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
 
+  const [issueTitle, setIssueTitle] = useState('')
+  const [issuePriority, setIssuePriority] = useState('Medium')
+  const [issueStatus, setIssueStatus] = useState('Open')
+
   function createProject() {
     if (projectName.trim() === '') {
       return
@@ -78,6 +82,39 @@ function App() {
 
   function goBack() {
     setSelectedProject(null)
+  }
+
+  function createIssue() {
+    if (issueTitle.trim() === '' || selectedProject === null) {
+      return
+    }
+
+    const newIssue = {
+      id: issues.length + 1,
+      projectId: selectedProject.id,
+      title: issueTitle,
+      priority: issuePriority,
+      status: issueStatus
+    }
+
+    setIssues([...issues, newIssue])
+
+    setProjects(
+      projects.map((project) =>
+        project.id === selectedProject.id
+          ? { ...project, issues: project.issues + 1 }
+          : project
+      )
+    )
+
+    setSelectedProject({
+      ...selectedProject,
+      issues: selectedProject.issues + 1
+    })
+
+    setIssueTitle('')
+    setIssuePriority('Medium')
+    setIssueStatus('Open')
   }
 
   const projectIssues = selectedProject
@@ -132,6 +169,37 @@ function App() {
 
             <h1>{selectedProject.name}</h1>
             <p>View and manage issues for this project.</p>
+
+            <div className="create-issue">
+              <h2>Create Issue</h2>
+
+              <input
+                type="text"
+                placeholder="Issue title"
+                value={issueTitle}
+                onChange={(event) => setIssueTitle(event.target.value)}
+              />
+
+              <select
+                value={issuePriority}
+                onChange={(event) => setIssuePriority(event.target.value)}
+              >
+                <option value="Low">Low Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="High">High Priority</option>
+              </select>
+
+              <select
+                value={issueStatus}
+                onChange={(event) => setIssueStatus(event.target.value)}
+              >
+                <option value="Open">Open</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Resolved">Resolved</option>
+              </select>
+
+              <button onClick={createIssue}>Add Issue</button>
+            </div>
 
             <h2 className="issues-title">Issues</h2>
 

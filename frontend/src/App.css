@@ -93,6 +93,33 @@ button:hover {
   margin-bottom: 20px;
 }
 
+.create-issue {
+  background-color: white;
+  max-width: 700px;
+  padding: 20px;
+  margin-top: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.create-issue h2 {
+  margin-top: 0;
+}
+
+.create-issue input,
+.create-issue select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.create-issue button {
+  margin-top: 15px;
+}
+
 .issues-title {
   margin-top: 35px;
 }

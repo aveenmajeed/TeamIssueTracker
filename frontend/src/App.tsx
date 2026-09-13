@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import ProjectCard from './components/ProjectCard'
 
@@ -16,11 +16,7 @@ type Issue = {
 }
 
 function App() {
-  const [projects, setProjects] = useState<Project[]>([
-    { id: 1, name: 'Security App' },
-    { id: 2, name: 'Banking App' },
-    { id: 3, name: 'Website Redesign' }
-  ])
+  const [projects, setProjects] = useState<Project[]>([])
 
   const [issues, setIssues] = useState<Issue[]>([
     {
@@ -59,8 +55,22 @@ function App() {
   const [issueTitle, setIssueTitle] = useState('')
   const [issuePriority, setIssuePriority] = useState('Medium')
   const [issueStatus, setIssueStatus] = useState('Open')
-
   const [statusFilter, setStatusFilter] = useState('All')
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  async function fetchProjects() {
+    try {
+      const response = await fetch('http://localhost:3000/api/projects')
+      const data = await response.json()
+
+      setProjects(data)
+    } catch (error) {
+      console.error('Failed to load projects:', error)
+    }
+  }
 
   function createProject() {
     if (projectName.trim() === '') {

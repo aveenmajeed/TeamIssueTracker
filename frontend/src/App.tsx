@@ -5,7 +5,6 @@ import ProjectCard from './components/ProjectCard'
 type Project = {
   id: number
   name: string
-  issues: number
 }
 
 type Issue = {
@@ -18,9 +17,9 @@ type Issue = {
 
 function App() {
   const [projects, setProjects] = useState<Project[]>([
-    { id: 1, name: 'Security App', issues: 2 },
-    { id: 2, name: 'Banking App', issues: 1 },
-    { id: 3, name: 'Website Redesign', issues: 1 }
+    { id: 1, name: 'Security App' },
+    { id: 2, name: 'Banking App' },
+    { id: 3, name: 'Website Redesign' }
   ])
 
   const [issues, setIssues] = useState<Issue[]>([
@@ -67,9 +66,8 @@ function App() {
     }
 
     const newProject = {
-      id: projects.length + 1,
-      name: projectName,
-      issues: 0
+      id: Date.now(),
+      name: projectName
     }
 
     setProjects([...projects, newProject])
@@ -90,7 +88,7 @@ function App() {
     }
 
     const newIssue = {
-      id: issues.length + 1,
+      id: Date.now(),
       projectId: selectedProject.id,
       title: issueTitle,
       priority: issuePriority,
@@ -99,22 +97,37 @@ function App() {
 
     setIssues([...issues, newIssue])
 
-    setProjects(
-      projects.map((project) =>
-        project.id === selectedProject.id
-          ? { ...project, issues: project.issues + 1 }
-          : project
-      )
-    )
-
-    setSelectedProject({
-      ...selectedProject,
-      issues: selectedProject.issues + 1
-    })
-
     setIssueTitle('')
     setIssuePriority('Medium')
     setIssueStatus('Open')
+  }
+
+  function changePriority(issueId: number, priority: string) {
+    setIssues(
+      issues.map((issue) =>
+        issue.id === issueId
+          ? { ...issue, priority: priority }
+          : issue
+      )
+    )
+  }
+
+  function changeStatus(issueId: number, status: string) {
+    setIssues(
+      issues.map((issue) =>
+        issue.id === issueId
+          ? { ...issue, status: status }
+          : issue
+      )
+    )
+  }
+
+  function getOpenIssueCount(projectId: number) {
+    return issues.filter(
+      (issue) =>
+        issue.projectId === projectId &&
+        issue.status !== 'Resolved'
+    ).length
   }
 
   const projectIssues = selectedProject
@@ -147,7 +160,9 @@ function App() {
                 onChange={(event) => setProjectName(event.target.value)}
               />
 
-              <button onClick={createProject}>Create Project</button>
+              <button onClick={createProject}>
+                Create Project
+              </button>
             </div>
 
             <div className="project-list">
@@ -155,7 +170,7 @@ function App() {
                 <ProjectCard
                   key={project.id}
                   name={project.name}
-                  issues={project.issues}
+                  issues={getOpenIssueCount(project.id)}
                   onView={() => viewProject(project)}
                 />
               ))}
@@ -163,7 +178,10 @@ function App() {
           </>
         ) : (
           <>
-            <button className="back-button" onClick={goBack}>
+            <button
+              className="back-button"
+              onClick={goBack}
+            >
               Back to Projects
             </button>
 
@@ -177,12 +195,16 @@ function App() {
                 type="text"
                 placeholder="Issue title"
                 value={issueTitle}
-                onChange={(event) => setIssueTitle(event.target.value)}
+                onChange={(event) =>
+                  setIssueTitle(event.target.value)
+                }
               />
 
               <select
                 value={issuePriority}
-                onChange={(event) => setIssuePriority(event.target.value)}
+                onChange={(event) =>
+                  setIssuePriority(event.target.value)
+                }
               >
                 <option value="Low">Low Priority</option>
                 <option value="Medium">Medium Priority</option>
@@ -191,33 +213,75 @@ function App() {
 
               <select
                 value={issueStatus}
-                onChange={(event) => setIssueStatus(event.target.value)}
+                onChange={(event) =>
+                  setIssueStatus(event.target.value)
+                }
               >
                 <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
+                <option value="In Progress">
+                  In Progress
+                </option>
                 <option value="Resolved">Resolved</option>
               </select>
 
-              <button onClick={createIssue}>Add Issue</button>
+              <button onClick={createIssue}>
+                Add Issue
+              </button>
             </div>
 
             <h2 className="issues-title">Issues</h2>
 
             <div className="issue-list">
               {projectIssues.length === 0 ? (
-                <p>No issues have been created for this project.</p>
+                <p>
+                  No issues have been created for this project.
+                </p>
               ) : (
                 projectIssues.map((issue) => (
                   <div className="issue-card" key={issue.id}>
                     <h3>{issue.title}</h3>
 
-                    <p>
-                      <strong>Priority:</strong> {issue.priority}
-                    </p>
+                    <div className="issue-fields">
+                      <div>
+                        <label>Priority</label>
 
-                    <p>
-                      <strong>Status:</strong> {issue.status}
-                    </p>
+                        <select
+                          value={issue.priority}
+                          onChange={(event) =>
+                            changePriority(
+                              issue.id,
+                              event.target.value
+                            )
+                          }
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label>Status</label>
+
+                        <select
+                          value={issue.status}
+                          onChange={(event) =>
+                            changeStatus(
+                              issue.id,
+                              event.target.value
+                            )
+                          }
+                        >
+                          <option value="Open">Open</option>
+                          <option value="In Progress">
+                            In Progress
+                          </option>
+                          <option value="Resolved">
+                            Resolved
+                          </option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
                 ))
               )}

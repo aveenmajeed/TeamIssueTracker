@@ -60,6 +60,8 @@ function App() {
   const [issuePriority, setIssuePriority] = useState('Medium')
   const [issueStatus, setIssueStatus] = useState('Open')
 
+  const [statusFilter, setStatusFilter] = useState('All')
+
   function createProject() {
     if (projectName.trim() === '') {
       return
@@ -76,6 +78,7 @@ function App() {
 
   function viewProject(project: Project) {
     setSelectedProject(project)
+    setStatusFilter('All')
   }
 
   function goBack() {
@@ -122,6 +125,12 @@ function App() {
     )
   }
 
+  function deleteIssue(issueId: number) {
+    setIssues(
+      issues.filter((issue) => issue.id !== issueId)
+    )
+  }
+
   function getOpenIssueCount(projectId: number) {
     return issues.filter(
       (issue) =>
@@ -133,6 +142,13 @@ function App() {
   const projectIssues = selectedProject
     ? issues.filter((issue) => issue.projectId === selectedProject.id)
     : []
+
+  const filteredIssues =
+    statusFilter === 'All'
+      ? projectIssues
+      : projectIssues.filter(
+          (issue) => issue.status === statusFilter
+        )
 
   return (
     <div>
@@ -157,7 +173,9 @@ function App() {
                 type="text"
                 placeholder="Enter project name"
                 value={projectName}
-                onChange={(event) => setProjectName(event.target.value)}
+                onChange={(event) =>
+                  setProjectName(event.target.value)
+                }
               />
 
               <button onClick={createProject}>
@@ -221,7 +239,9 @@ function App() {
                 <option value="In Progress">
                   In Progress
                 </option>
-                <option value="Resolved">Resolved</option>
+                <option value="Resolved">
+                  Resolved
+                </option>
               </select>
 
               <button onClick={createIssue}>
@@ -229,17 +249,42 @@ function App() {
               </button>
             </div>
 
-            <h2 className="issues-title">Issues</h2>
+            <div className="issues-header">
+              <h2>Issues</h2>
+
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(event.target.value)
+                }
+              >
+                <option value="All">All Issues</option>
+                <option value="Open">Open</option>
+                <option value="In Progress">
+                  In Progress
+                </option>
+                <option value="Resolved">
+                  Resolved
+                </option>
+              </select>
+            </div>
 
             <div className="issue-list">
-              {projectIssues.length === 0 ? (
-                <p>
-                  No issues have been created for this project.
-                </p>
+              {filteredIssues.length === 0 ? (
+                <p>No issues match this filter.</p>
               ) : (
-                projectIssues.map((issue) => (
+                filteredIssues.map((issue) => (
                   <div className="issue-card" key={issue.id}>
-                    <h3>{issue.title}</h3>
+                    <div className="issue-card-header">
+                      <h3>{issue.title}</h3>
+
+                      <button
+                        className="delete-button"
+                        onClick={() => deleteIssue(issue.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
 
                     <div className="issue-fields">
                       <div>

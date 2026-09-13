@@ -120,8 +120,23 @@ button:hover {
   margin-top: 15px;
 }
 
-.issues-title {
+.issues-header {
+  max-width: 700px;
   margin-top: 35px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.issues-header h2 {
+  margin: 0;
+}
+
+.issues-header select {
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: white;
 }
 
 .issue-list {
@@ -140,7 +155,23 @@ button:hover {
 }
 
 .issue-card h3 {
+  margin: 0;
+}
+
+.issue-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.delete-button {
   margin-top: 0;
+  background-color: #9f1239;
+  padding: 8px 14px;
+}
+
+.delete-button:hover {
+  background-color: #881337;
 }
 
 .issue-fields {

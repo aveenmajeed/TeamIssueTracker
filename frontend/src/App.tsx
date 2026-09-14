@@ -63,7 +63,10 @@ function App() {
 
   async function fetchProjects() {
     try {
-      const response = await fetch('http://localhost:3000/api/projects')
+      const response = await fetch(
+        'http://localhost:3000/api/projects'
+      )
+
       const data = await response.json()
 
       setProjects(data)
@@ -72,18 +75,37 @@ function App() {
     }
   }
 
-  function createProject() {
+  async function createProject() {
     if (projectName.trim() === '') {
       return
     }
 
-    const newProject = {
-      id: Date.now(),
-      name: projectName
-    }
+    try {
+      const response = await fetch(
+        'http://localhost:3000/api/projects',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: projectName
+          })
+        }
+      )
 
-    setProjects([...projects, newProject])
-    setProjectName('')
+      if (!response.ok) {
+        console.error('Failed to create project')
+        return
+      }
+
+      const newProject = await response.json()
+
+      setProjects([...projects, newProject])
+      setProjectName('')
+    } catch (error) {
+      console.error('Failed to create project:', error)
+    }
   }
 
   function viewProject(project: Project) {
@@ -150,7 +172,9 @@ function App() {
   }
 
   const projectIssues = selectedProject
-    ? issues.filter((issue) => issue.projectId === selectedProject.id)
+    ? issues.filter(
+        (issue) => issue.projectId === selectedProject.id
+      )
     : []
 
   const filteredIssues =
@@ -284,13 +308,18 @@ function App() {
                 <p>No issues match this filter.</p>
               ) : (
                 filteredIssues.map((issue) => (
-                  <div className="issue-card" key={issue.id}>
+                  <div
+                    className="issue-card"
+                    key={issue.id}
+                  >
                     <div className="issue-card-header">
                       <h3>{issue.title}</h3>
 
                       <button
                         className="delete-button"
-                        onClick={() => deleteIssue(issue.id)}
+                        onClick={() =>
+                          deleteIssue(issue.id)
+                        }
                       >
                         Delete
                       </button>

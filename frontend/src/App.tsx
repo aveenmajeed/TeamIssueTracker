@@ -17,40 +17,11 @@ type Issue = {
 
 function App() {
   const [projects, setProjects] = useState<Project[]>([])
-
-  const [issues, setIssues] = useState<Issue[]>([
-    {
-      id: 1,
-      projectId: 1,
-      title: 'Camera stops recording',
-      priority: 'High',
-      status: 'Open'
-    },
-    {
-      id: 2,
-      projectId: 1,
-      title: 'Improve dashboard layout',
-      priority: 'Low',
-      status: 'In Progress'
-    },
-    {
-      id: 3,
-      projectId: 2,
-      title: 'Login button not working',
-      priority: 'High',
-      status: 'Open'
-    },
-    {
-      id: 4,
-      projectId: 3,
-      title: 'Update homepage design',
-      priority: 'Medium',
-      status: 'In Progress'
-    }
-  ])
+  const [issues, setIssues] = useState<Issue[]>([])
 
   const [projectName, setProjectName] = useState('')
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
+  const [selectedProject, setSelectedProject] =
+    useState<Project | null>(null)
 
   const [issueTitle, setIssueTitle] = useState('')
   const [issuePriority, setIssuePriority] = useState('Medium')
@@ -59,6 +30,7 @@ function App() {
 
   useEffect(() => {
     fetchProjects()
+    fetchIssues()
   }, [])
 
   async function fetchProjects() {
@@ -68,10 +40,22 @@ function App() {
       )
 
       const data = await response.json()
-
       setProjects(data)
     } catch (error) {
       console.error('Failed to load projects:', error)
+    }
+  }
+
+  async function fetchIssues() {
+    try {
+      const response = await fetch(
+        'http://localhost:3000/api/issues'
+      )
+
+      const data = await response.json()
+      setIssues(data)
+    } catch (error) {
+      console.error('Failed to load issues:', error)
     }
   }
 
@@ -117,50 +101,157 @@ function App() {
     setSelectedProject(null)
   }
 
-  function createIssue() {
+  async function createIssue() {
     if (issueTitle.trim() === '' || selectedProject === null) {
       return
     }
 
-    const newIssue = {
-      id: Date.now(),
-      projectId: selectedProject.id,
-      title: issueTitle,
-      priority: issuePriority,
-      status: issueStatus
+    try {
+      const response = await fetch(
+        'http://localhost:3000/api/issues',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            projectId: selectedProject.id,
+            title: issueTitle,
+            priority: issuePriority,
+            status: issueStatus
+          })
+        }
+      )
+
+      if (!response.ok) {
+        console.error('Failed to create issue')
+        return
+      }
+
+      const newIssue = await response.json()
+
+      setIssues([...issues, newIssue])
+
+      setIssueTitle('')
+      setIssuePriority('Medium')
+      setIssueStatus('Open')
+    } catch (error) {
+      console.error('Failed to create issue:', error)
+    }
+  }
+
+  async function changePriority(
+    issueId: number,
+    priority: string
+  ) {
+    const issue = issues.find(
+      (currentIssue) => currentIssue.id === issueId
+    )
+
+    if (!issue) {
+      return
     }
 
-    setIssues([...issues, newIssue])
-
-    setIssueTitle('')
-    setIssuePriority('Medium')
-    setIssueStatus('Open')
-  }
-
-  function changePriority(issueId: number, priority: string) {
-    setIssues(
-      issues.map((issue) =>
-        issue.id === issueId
-          ? { ...issue, priority: priority }
-          : issue
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/issues/${issueId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            priority: priority,
+            status: issue.status
+          })
+        }
       )
-    )
-  }
 
-  function changeStatus(issueId: number, status: string) {
-    setIssues(
-      issues.map((issue) =>
-        issue.id === issueId
-          ? { ...issue, status: status }
-          : issue
+      if (!response.ok) {
+        console.error('Failed to update priority')
+        return
+      }
+
+      const updatedIssue = await response.json()
+
+      setIssues(
+        issues.map((currentIssue) =>
+          currentIssue.id === issueId
+            ? updatedIssue
+            : currentIssue
+        )
       )
-    )
+    } catch (error) {
+      console.error('Failed to update priority:', error)
+    }
   }
 
-  function deleteIssue(issueId: number) {
-    setIssues(
-      issues.filter((issue) => issue.id !== issueId)
+  async function changeStatus(
+    issueId: number,
+    status: string
+  ) {
+    const issue = issues.find(
+      (currentIssue) => currentIssue.id === issueId
     )
+
+    if (!issue) {
+      return
+    }
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/issues/${issueId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            priority: issue.priority,
+            status: status
+          })
+        }
+      )
+
+      if (!response.ok) {
+        console.error('Failed to update status')
+        return
+      }
+
+      const updatedIssue = await response.json()
+
+      setIssues(
+        issues.map((currentIssue) =>
+          currentIssue.id === issueId
+            ? updatedIssue
+            : currentIssue
+        )
+      )
+    } catch (error) {
+      console.error('Failed to update status:', error)
+    }
+  }
+
+  async function deleteIssue(issueId: number) {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/issues/${issueId}`,
+        {
+          method: 'DELETE'
+        }
+      )
+
+      if (!response.ok) {
+        console.error('Failed to delete issue')
+        return
+      }
+
+      setIssues(
+        issues.filter((issue) => issue.id !== issueId)
+      )
+    } catch (error) {
+      console.error('Failed to delete issue:', error)
+    }
   }
 
   function getOpenIssueCount(projectId: number) {
@@ -273,9 +364,7 @@ function App() {
                 <option value="In Progress">
                   In Progress
                 </option>
-                <option value="Resolved">
-                  Resolved
-                </option>
+                <option value="Resolved">Resolved</option>
               </select>
 
               <button onClick={createIssue}>
@@ -339,7 +428,9 @@ function App() {
                           }
                         >
                           <option value="Low">Low</option>
-                          <option value="Medium">Medium</option>
+                          <option value="Medium">
+                            Medium
+                          </option>
                           <option value="High">High</option>
                         </select>
                       </div>
